@@ -86,7 +86,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-group" style="grid-column:1/-1"><label>Description</label><textarea name="description"><?= e($editHotel['description']??'') ?></textarea></div>
         <div class="form-group"><label>Address</label><input type="text" name="address" value="<?= e($editHotel['address']??'') ?>"></div>
-        <div class="form-group"><label>Thumbnail path</label><input type="text" name="thumbnail" value="<?= e($editHotel['thumbnail']??'') ?>" placeholder="assets/images/hotels/hotel_1.jpg"><div class="form-hint">Relative path from project root</div></div>
+        <div class="form-group"><label>Thumbnail URL</label><input type="text" name="thumbnail" value="<?= e($editHotel['thumbnail']??'') ?>" placeholder="https://images.unsplash.com/photo-xxx?w=800&q=80"><div class="form-hint">Paste any image URL — right-click any image online and choose "Copy image address"</div></div>
         <div class="form-group"><label>Stars (1–5)</label>
           <select name="stars"><?php for($i=5;$i>=1;$i--): ?><option value="<?= $i ?>" <?= ($editHotel['stars']??3)==$i?'selected':'' ?>><?= $i ?> Star<?= $i>1?'s':'' ?></option><?php endfor; ?></select>
         </div>
