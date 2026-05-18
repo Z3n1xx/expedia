@@ -1,0 +1,6 @@
+# Don't commit these
+check_schema.php
+generate_sql.php
+fix_images.php
+*.log
+.env
