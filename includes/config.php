@@ -88,9 +88,36 @@ function flashGet(): ?array {
     return $f;
 }
 
+/* ── Currency / Region ─────────────────────────────────────── */
+$_CURRENCIES = [
+    'PHP' => ['symbol'=>'₱',  'rate'=>1,       'label'=>'Philippine Peso'],
+    'USD' => ['symbol'=>'$',  'rate'=>0.0175,   'label'=>'US Dollar'],
+    'EUR' => ['symbol'=>'€',  'rate'=>0.016,    'label'=>'Euro'],
+    'GBP' => ['symbol'=>'£',  'rate'=>0.0138,   'label'=>'British Pound'],
+    'JPY' => ['symbol'=>'¥',  'rate'=>2.65,     'label'=>'Japanese Yen'],
+    'SGD' => ['symbol'=>'S$', 'rate'=>0.0234,   'label'=>'Singapore Dollar'],
+    'AUD' => ['symbol'=>'A$', 'rate'=>0.027,    'label'=>'Australian Dollar'],
+    'KRW' => ['symbol'=>'₩',  'rate'=>23.8,     'label'=>'Korean Won'],
+];
+$_REGIONS = ['PH'=>'🇵🇭 Philippines','US'=>'🇺🇸 United States','GB'=>'🇬🇧 United Kingdom',
+             'AU'=>'🇦🇺 Australia','JP'=>'🇯🇵 Japan','SG'=>'🇸🇬 Singapore','KR'=>'🇰🇷 South Korea','EU'=>'🇪🇺 Europe'];
+
+$_selCurrency = $_SESSION['currency'] ?? 'PHP';
+$_selRegion   = $_SESSION['region']   ?? 'PH';
+if (!array_key_exists($_selCurrency, $_CURRENCIES)) $_selCurrency = 'PHP';
+
+define('CURR_SYMBOL', $_CURRENCIES[$_selCurrency]['symbol']);
+define('CURR_RATE',   $_CURRENCIES[$_selCurrency]['rate']);
+define('CURR_CODE',   $_selCurrency);
+define('SEL_REGION',  $_selRegion);
+
 /* ── Utilities ─────────────────────────────────────────────── */
 function e(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
-function money(float $n): string { return CURRENCY . number_format($n, 0); }
+function money(float $n): string {
+    $converted = $n * CURR_RATE;
+    if (CURR_CODE === 'JPY' || CURR_CODE === 'KRW') return CURR_SYMBOL . number_format($converted, 0);
+    return CURR_SYMBOL . number_format($converted, CURR_CODE === 'PHP' ? 0 : 2);
+}
 
 function csrf(): string {
     if (empty($_SESSION['_csrf'])) $_SESSION['_csrf'] = bin2hex(random_bytes(32));

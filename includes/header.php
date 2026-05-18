@@ -2,6 +2,7 @@
 $flash = flashGet();
 $page  = basename($_SERVER['PHP_SELF'], '.php');
 $dir   = basename(dirname($_SERVER['PHP_SELF']));
+global $_CURRENCIES, $_REGIONS;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,6 +39,34 @@ $dir   = basename(dirname($_SERVER['PHP_SELF']));
         <a href="<?= SITE_URL ?>/pages/login.php" class="<?= $page==='login'?'active':'' ?>">Sign in</a>
         <a href="<?= SITE_URL ?>/pages/register.php" class="btn-coral-sm">Join free</a>
       <?php endif; ?>
+
+      <!-- Region / Currency picker -->
+      <div class="locale-wrap">
+        <button class="locale-btn" id="localeBtn" onclick="document.getElementById('localeDropdown').classList.toggle('open')" type="button">
+          <?= $_REGIONS[SEL_REGION] ?? '🌐' ?> · <?= CURR_CODE ?>
+        </button>
+        <div class="locale-dropdown" id="localeDropdown">
+          <form method="POST" action="<?= SITE_URL ?>/pages/set-locale.php">
+            <input type="hidden" name="back" value="<?= e($_SERVER['REQUEST_URI'] ?? '/') ?>">
+            <div style="margin-bottom:12px">
+              <label style="font-size:.78rem;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">Region</label>
+              <select name="region" onchange="this.form.submit()" style="width:100%;font-size:.84rem">
+                <?php foreach ($_REGIONS as $code => $label): ?>
+                  <option value="<?= $code ?>" <?= SEL_REGION===$code?'selected':'' ?>><?= $label ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">Currency</label>
+              <select name="currency" onchange="this.form.submit()" style="width:100%;font-size:.84rem">
+                <?php foreach ($_CURRENCIES as $code => $info): ?>
+                  <option value="<?= $code ?>" <?= CURR_CODE===$code?'selected':'' ?>><?= $code ?> — <?= $info['label'] ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </nav>

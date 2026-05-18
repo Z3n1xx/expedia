@@ -10,14 +10,30 @@ $stars    = (int)($_GET['stars']           ?? 0);
 $minP     = (float)($_GET['min_price']     ?? 0);
 $maxP     = (float)($_GET['max_price']     ?? 0);
 $sort     = in_array($_GET['sort']??'',['rating','price_asc','price_desc','name']) ? $_GET['sort'] : 'rating';
+$propName = trim($_GET['name'] ?? '');
+$propType = in_array($_GET['type']??'',['hotels','homes']) ? $_GET['type'] : 'all';
+
+// Homes are hotels with "Resort","Villa","Cottage","Hideaway","Homestay" in the name
+$homeKeywords = ['Resort','Villa','Cottage','Hideaway','Homestay','Retreat','Lodge'];
+$hotelKeywords = ['Hotel','Suites','Inn','Hostel','Manor','Seda','Raffles','Shangri','Marco','Crimson'];
 
 $where  = ['h.is_active=1'];
 $params = [];
 if ($locId)  { $where[] = 'h.location_id=?'; $params[] = $locId; }
 if ($stars)  { $where[] = 'h.stars=?';        $params[] = $stars; }
+if ($propName) { $where[] = 'h.name LIKE ?';  $params[] = '%'.$propName.'%'; }
 if ($guests > 1) { $where[] = 'EXISTS(SELECT 1 FROM rooms r WHERE r.hotel_id=h.id AND r.max_guests>=? AND r.is_available=1)'; $params[] = $guests; }
 if ($minP > 0)   { $where[] = 'EXISTS(SELECT 1 FROM rooms r WHERE r.hotel_id=h.id AND r.price_per_night>=?)'; $params[] = $minP; }
 if ($maxP > 0)   { $where[] = 'EXISTS(SELECT 1 FROM rooms r WHERE r.hotel_id=h.id AND r.price_per_night<=?)'; $params[] = $maxP; }
+if ($propType === 'homes') {
+    $kw = array_map(fn($k) => 'h.name LIKE ?', $homeKeywords);
+    $where[] = '(' . implode(' OR ', $kw) . ')';
+    foreach ($homeKeywords as $k) $params[] = '%'.$k.'%';
+} elseif ($propType === 'hotels') {
+    $kw = array_map(fn($k) => 'h.name LIKE ?', $homeKeywords);
+    $where[] = 'NOT (' . implode(' OR ', $kw) . ')';
+    foreach ($homeKeywords as $k) $params[] = '%'.$k.'%';
+}
 
 $orderMap = ['rating'=>'h.rating DESC','price_asc'=>'minp ASC','price_desc'=>'minp DESC','name'=>'h.name ASC'];
 $sql = "SELECT h.*,l.city,l.country,(SELECT MIN(r.price_per_night) FROM rooms r WHERE r.hotel_id=h.id AND r.is_available=1) AS minp
@@ -67,8 +83,21 @@ include __DIR__ . '/../includes/header.php';
       <input type="hidden" name="sort"      value="<?= e($sort) ?>">
       <input type="hidden" name="min_price" value="<?= $minP ?>">
       <input type="hidden" name="max_price" value="<?= $maxP ?>">
+      <input type="hidden" name="type"      value="<?= e($propType) ?>">
+      <input type="hidden" name="name"      value="<?= e($propName) ?>">
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
+
+    <!-- Property type tabs -->
+    <div style="display:flex;gap:6px;padding:8px 0 2px">
+      <?php foreach(['all'=>'🏠 All Stays','hotels'=>'🏨 Hotels','homes'=>'🌴 Homes & Resorts'] as $val=>$lbl): ?>
+        <a href="?<?= http_build_query(array_merge($_GET,['type'=>$val])) ?>"
+           style="padding:6px 18px;border-radius:20px;font-size:.82rem;font-weight:500;border:1.5px solid;text-decoration:none;
+                  <?= $propType===$val ? 'background:var(--navy);color:#fff;border-color:var(--navy)' : 'background:#fff;color:var(--text2);border-color:var(--border)' ?>">
+          <?= $lbl ?>
+        </a>
+      <?php endforeach; ?>
+    </div>
   </div>
 </div>
 
@@ -78,6 +107,14 @@ include __DIR__ . '/../includes/header.php';
     <!-- SIDEBAR FILTERS -->
     <aside class="filters">
       <h3>Filters</h3>
+      <div class="filter-block">
+        <h4>Search by name</h4>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="prop_name" placeholder="Property name…" value="<?= e($propName) ?>"
+                 style="flex:1;padding:8px 10px;font-size:.84rem">
+          <button type="button" onclick="applyName()" class="btn btn-navy btn-sm">Go</button>
+        </div>
+      </div>
       <div class="filter-block">
         <h4>Star rating</h4>
         <div class="star-btns">
@@ -104,7 +141,7 @@ include __DIR__ . '/../includes/header.php';
           <option value="name"       <?= $sort==='name'      ?'selected':'' ?>>Name A–Z</option>
         </select>
       </div>
-      <?php if ($locId||$stars||$minP||$maxP): ?>
+      <?php if ($locId||$stars||$minP||$maxP||$propName||$propType!=='all'): ?>
         <a href="search.php" style="font-size:.82rem;color:var(--coral)">✕ Clear all filters</a>
       <?php endif; ?>
     </aside>
@@ -157,5 +194,7 @@ include __DIR__ . '/../includes/header.php';
 function applyStar(s){const u=new URL(location.href);const c=u.searchParams.get('stars');if(c==s)u.searchParams.delete('stars');else u.searchParams.set('stars',s);location.href=u;}
 function applyPrice(){const u=new URL(location.href);const mn=document.getElementById('min_p').value;const mx=document.getElementById('max_p').value;mn?u.searchParams.set('min_price',mn):u.searchParams.delete('min_price');mx?u.searchParams.set('max_price',mx):u.searchParams.delete('max_price');location.href=u;}
 function applySort(v){const u=new URL(location.href);u.searchParams.set('sort',v);location.href=u;}
+function applyName(){const u=new URL(location.href);const v=document.getElementById('prop_name').value.trim();v?u.searchParams.set('name',v):u.searchParams.delete('name');location.href=u;}
+document.getElementById('prop_name')?.addEventListener('keydown',e=>{if(e.key==='Enter')applyName();});
 </script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -10,8 +10,10 @@ include __DIR__ . '/includes/header.php';
 <!-- HERO -->
 <section class="hero">
   <div class="hero-bg">
-    <div class="hero-blob blob1"></div>
-    <div class="hero-blob blob2"></div>
+    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80"
+         alt="Beach" class="hero-bg-img"
+         onerror="this.style.display='none'">
+    <div class="hero-bg-overlay"></div>
   </div>
   <div class="hero-content">
     <div class="hero-tag">🌴 Discover the Philippines</div>
