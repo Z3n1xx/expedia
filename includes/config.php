@@ -12,10 +12,12 @@ define('SITE_NAME', 'Expedia PH');
 define('CURRENCY',  '₱');
 
 // Auto-detect site URL — works on local XAMPP and on Railway
-$_proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $_host  = $_SERVER['HTTP_HOST'] ?? 'localhost';
-// On Railway the app runs at the root (/), locally it's under /expedia
 $_isLocal = ($_host === 'localhost' || str_contains($_host, '127.0.0.1'));
+// Railway terminates SSL at the proxy and sets X-Forwarded-Proto
+$_proto = 'http';
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') $_proto = 'https';
+if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) $_proto = $_SERVER['HTTP_X_FORWARDED_PROTO'];
 if ($_isLocal) {
     $_script = $_SERVER['SCRIPT_NAME'] ?? '/expedia/index.php';
     $_base   = implode('/', array_slice(explode('/', $_script), 0, 2));
