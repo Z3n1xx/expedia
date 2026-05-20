@@ -134,10 +134,3 @@ document.querySelectorAll('[data-confirm]').forEach(el => {
 const fl = document.getElementById('flashMsg');
 if (fl) setTimeout(() => { fl.style.transition = 'opacity .4s'; fl.style.opacity = '0'; setTimeout(() => fl.remove(), 400); }, 5000);
 
-/* Close locale dropdown when clicking outside */
-document.addEventListener('click', e => {
-  const wrap = document.querySelector('.locale-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('localeDropdown')?.classList.remove('open');
-  }
-});

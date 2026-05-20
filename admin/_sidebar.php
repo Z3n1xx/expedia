@@ -13,7 +13,13 @@ $ap = basename($_SERVER['PHP_SELF'],'.php');
     <a href="<?= SITE_URL ?>/admin/rooms.php"     class="<?= $ap==='rooms'?'on':'' ?>">🛏 Rooms</a>
     <a href="<?= SITE_URL ?>/admin/bookings.php"  class="<?= $ap==='bookings'?'on':'' ?>">📋 Bookings</a>
     <a href="<?= SITE_URL ?>/admin/payments.php"  class="<?= $ap==='payments'?'on':'' ?>">💳 Payments</a>
-    <a href="<?= SITE_URL ?>/admin/users.php"     class="<?= $ap==='users'?'on':'' ?>">👤 Users</a>
+    <a href="<?= SITE_URL ?>/admin/users.php"         class="<?= $ap==='users'?'on':'' ?>">👤 Users</a>
+    <a href="<?= SITE_URL ?>/admin/applications.php" class="<?= $ap==='applications'?'on':'' ?>">🏢 Applications</a>
+    <?php
+    $pendingApps = (int)db()->query("SELECT COUNT(*) FROM hotel_applications WHERE status='pending'")->fetchColumn();
+    if ($pendingApps > 0): ?>
+    <a href="<?= SITE_URL ?>/admin/applications.php?filter=pending" style="margin-left:8px;font-size:.75rem;background:var(--coral);color:#fff;padding:2px 8px;border-radius:10px;text-decoration:none"><?= $pendingApps ?> new</a>
+    <?php endif; ?>
   </nav>
   <div class="side-label">Account</div>
   <nav>

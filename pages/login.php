@@ -22,10 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['first_name'] = $user['first_name'];
             $_SESSION['last_name']  = $user['last_name'];
             $_SESSION['role']       = $user['role'];
+            $_SESSION['hotel_id']   = $user['hotel_id'] ?? null;
             flashSet('success', 'Welcome back, '.$user['first_name'].'! 👋');
             $next = $_POST['next'] ?? '';
             if ($next && str_starts_with($next, '/')) { header('Location: '.$next); }
             elseif ($user['role'] === 'admin') { header('Location: '.SITE_URL.'/admin/dashboard.php'); }
+            elseif ($user['role'] === 'staff') { header('Location: '.SITE_URL.'/staff/dashboard.php'); }
             else { header('Location: '.SITE_URL.'/index.php'); }
             exit;
         } else {

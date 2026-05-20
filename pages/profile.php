@@ -25,8 +25,10 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && $section==='info') {
         $errors[] = 'First and last name are required.';
     if (strlen($firstName) > 80 || strlen($lastName) > 80)
         $errors[] = 'Name must not exceed 80 characters.';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL))
-        $errors[] = 'Please enter a valid email address.';
+    if (preg_match('/[0-9]/', $firstName) || preg_match('/[0-9]/', $lastName))
+        $errors[] = 'Name must not contain numbers.';
+    if (!validEmail($email))
+        $errors[] = 'Please enter a valid .com email address (e.g. you@example.com).';
     if ($phone !== '' && !preg_match('/^0\d{10}$/', $phone))
         $errors[] = 'Phone must be 11 digits starting with 0 (e.g. 09XXXXXXXXX).';
 
@@ -185,6 +187,13 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
+// ── Name fields: block digits on input ───────────────────────
+['inf_first','inf_last'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', function() {
+    this.value = this.value.replace(/[0-9]/g, '');
+  });
+});
+
 // ── Phone: digits only, max 11 ────────────────────────────────
 const phoneEl = document.getElementById('inf_phone');
 if (phoneEl) {
@@ -211,8 +220,10 @@ document.getElementById('infoForm')?.addEventListener('submit', function(e) {
   const phone = document.getElementById('inf_phone').value.trim();
 
   if (!first) { showErr('err_first', 'First name is required.'); ok = false; }
+  else if (/[0-9]/.test(first)) { showErr('err_first', 'Name must not contain numbers.'); ok = false; }
   if (!last)  { showErr('err_last',  'Last name is required.');  ok = false; }
-  if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}$/.test(email)) { showErr('err_email', 'Enter a valid email address.'); ok = false; }
+  else if (/[0-9]/.test(last))  { showErr('err_last',  'Name must not contain numbers.'); ok = false; }
+  if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.com$/.test(email)) { showErr('err_email', 'Only .com email addresses are accepted.'); ok = false; }
   if (phone !== '' && !/^0\d{10}$/.test(phone))   { showErr('err_phone', 'Must be 11 digits starting with 0 (e.g. 09XXXXXXXXX).'); ok = false; }
 
   if (!ok) e.preventDefault();

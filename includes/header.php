@@ -36,37 +36,15 @@ global $_CURRENCIES, $_REGIONS;
           <a href="<?= SITE_URL ?>/pages/logout.php" class="btn-ghost">Sign out</a>
         </div>
       <?php else: ?>
+        <a href="<?= SITE_URL ?>/pages/partner-apply.php" class="<?= $page==='partner-apply'?'active':'' ?>">List your property</a>
         <a href="<?= SITE_URL ?>/pages/login.php" class="<?= $page==='login'?'active':'' ?>">Sign in</a>
         <a href="<?= SITE_URL ?>/pages/register.php" class="btn-coral-sm">Join free</a>
       <?php endif; ?>
 
       <!-- Region / Currency picker -->
-      <div class="locale-wrap">
-        <button class="locale-btn" id="localeBtn" onclick="document.getElementById('localeDropdown').classList.toggle('open')" type="button">
-          <?= $_REGIONS[SEL_REGION] ?? '🌐' ?> · <?= CURR_CODE ?>
-        </button>
-        <div class="locale-dropdown" id="localeDropdown">
-          <form method="POST" action="<?= SITE_URL ?>/pages/set-locale.php">
-            <input type="hidden" name="back" value="<?= e($_SERVER['REQUEST_URI'] ?? '/') ?>">
-            <div style="margin-bottom:12px">
-              <label style="font-size:.78rem;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">Region</label>
-              <select name="region" onchange="this.form.submit()" style="width:100%;font-size:.84rem">
-                <?php foreach ($_REGIONS as $code => $label): ?>
-                  <option value="<?= $code ?>" <?= SEL_REGION===$code?'selected':'' ?>><?= $label ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:.78rem;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">Currency</label>
-              <select name="currency" onchange="this.form.submit()" style="width:100%;font-size:.84rem">
-                <?php foreach ($_CURRENCIES as $code => $info): ?>
-                  <option value="<?= $code ?>" <?= CURR_CODE===$code?'selected':'' ?>><?= $code ?> — <?= $info['label'] ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </form>
-        </div>
-      </div>
+      <button class="locale-btn" id="localeBtn" onclick="document.getElementById('localeModal').classList.add('open')" type="button">
+        <?= $_REGIONS[SEL_REGION] ?? '🌐' ?> · <?= CURR_CODE ?>
+      </button>
     </div>
   </div>
 </nav>
@@ -77,3 +55,54 @@ global $_CURRENCIES, $_REGIONS;
   <button onclick="document.getElementById('flashMsg').remove()">×</button>
 </div>
 <?php endif; ?>
+
+<!-- Locale modal -->
+<div class="locale-modal" id="localeModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="locale-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <h3 style="font-family:var(--font-body);font-weight:600;font-size:1.05rem;color:var(--navy);margin:0">Region &amp; Currency</h3>
+      <button onclick="document.getElementById('localeModal').classList.remove('open')"
+              style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text3);line-height:1">×</button>
+    </div>
+    <form method="POST" action="<?= SITE_URL ?>/pages/set-locale.php" id="localeForm">
+      <input type="hidden" name="back" value="<?= e($_SERVER['REQUEST_URI'] ?? '/') ?>">
+      <div style="margin-bottom:20px">
+        <div style="font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Select your region</div>
+        <div class="locale-region-grid">
+          <?php foreach ($_REGIONS as $code => $label): ?>
+            <label class="locale-region-opt <?= SEL_REGION===$code?'sel':'' ?>">
+              <input type="radio" name="region" value="<?= $code ?>" <?= SEL_REGION===$code?'checked':'' ?> style="display:none">
+              <?= $label ?>
+            </label>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div style="font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Select currency</div>
+        <div class="locale-curr-grid">
+          <?php foreach ($_CURRENCIES as $code => $info): ?>
+            <label class="locale-curr-opt <?= CURR_CODE===$code?'sel':'' ?>">
+              <input type="radio" name="currency" value="<?= $code ?>" <?= CURR_CODE===$code?'checked':'' ?> style="display:none">
+              <span style="font-weight:600;font-size:.9rem"><?= $info['symbol'] ?> <?= $code ?></span>
+              <span style="font-size:.75rem;color:var(--text3)"><?= $info['label'] ?></span>
+            </label>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-navy btn-full" style="padding:12px">Save preferences</button>
+    </form>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.locale-region-opt,.locale-curr-opt').forEach(lbl=>{
+  lbl.addEventListener('click',function(){
+    const name=this.querySelector('input').name;
+    document.querySelectorAll(`.locale-region-opt,.locale-curr-opt`).forEach(el=>{
+      if(el.querySelector('input').name===name) el.classList.remove('sel');
+    });
+    this.classList.add('sel');
+  });
+});
+// Close on Escape
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('localeModal')?.classList.remove('open');});
+</script>

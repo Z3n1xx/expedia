@@ -99,7 +99,7 @@ include __DIR__ . '/includes/header.php';
       ?>
       <a href="<?= SITE_URL ?>/pages/hotel.php?id=<?= $h['id'] ?>" class="card fade-up" style="text-decoration:none">
         <div class="card-img" style="height:200px">
-          <img src="<?= SITE_URL ?>/<?= e($h['thumbnail']??'') ?>" alt="<?= e($h['name']) ?>"
+          <img src="<?= preg_match('#^https?://#',$h['thumbnail']??'') ? e($h['thumbnail']) : SITE_URL.'/'.e($h['thumbnail']??'') ?>" alt="<?= e($h['name']) ?>"
                onerror="this.src='https://placehold.co/600x200/003580/ffffff?text=<?= urlencode($h['name']) ?>'">
           <div style="position:absolute;top:10px;right:10px">
             <span class="rating-pill">★ <?= number_format($h['rating'],2) ?></span>

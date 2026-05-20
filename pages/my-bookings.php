@@ -60,7 +60,7 @@ include __DIR__ . '/../includes/header.php';
     <?php foreach ($bookings as $bk): ?>
     <div class="bk-card fade-up">
       <div class="bk-thumb">
-        <img src="<?= SITE_URL ?>/<?= e($bk['thumbnail']??'') ?>" alt="<?= e($bk['hotel_name']) ?>" style="height:100%;width:100%"
+        <img src="<?= preg_match('#^https?://#',$bk['thumbnail']??'') ? e($bk['thumbnail']) : SITE_URL.'/'.e($bk['thumbnail']??'') ?>" alt="<?= e($bk['hotel_name']) ?>" style="height:100%;width:100%"
              onerror="this.src='https://placehold.co/120x88/003580/ffffff?text=Hotel'">
       </div>
       <div style="flex:1">

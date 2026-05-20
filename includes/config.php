@@ -66,6 +66,8 @@ if (session_status() === PHP_SESSION_NONE) {
 /* ── Auth helpers ──────────────────────────────────────────── */
 function isLoggedIn(): bool { return !empty($_SESSION['user_id']); }
 function isAdmin(): bool    { return isLoggedIn() && ($_SESSION['role'] ?? '') === 'admin'; }
+function isStaff(): bool    { return isLoggedIn() && ($_SESSION['role'] ?? '') === 'staff'; }
+function isAdminOrStaff(): bool { return isAdmin() || isStaff(); }
 
 function requireLogin(): void {
     if (!isLoggedIn()) {
@@ -75,6 +77,13 @@ function requireLogin(): void {
 }
 function requireAdmin(): void {
     if (!isAdmin()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
+}
+function requireAdminOrStaff(): void {
+    if (!isAdminOrStaff()) { header('Location: ' . SITE_URL . '/index.php'); exit; }
+}
+
+function validEmail(string $email): bool {
+    return (bool)preg_match('/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.com$/', $email);
 }
 
 /* ── Flash ─────────────────────────────────────────────────── */

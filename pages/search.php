@@ -13,18 +13,25 @@ $sort     = in_array($_GET['sort']??'',['rating','price_asc','price_desc','name'
 $propName = trim($_GET['name'] ?? '');
 $propType = in_array($_GET['type']??'',['hotels','homes']) ? $_GET['type'] : 'all';
 
+// Amenity filter — comma-separated list e.g. "Pool,WiFi"
+$amenFilter = array_filter(array_map('trim', explode(',', $_GET['amenities'] ?? '')));
+$allAmenities = ['Free WiFi','Pool','Gym','Spa','Restaurant','Parking','Bar','Beach Access','Airport Shuttle','Pet Friendly'];
+
 // Homes are hotels with "Resort","Villa","Cottage","Hideaway","Homestay" in the name
 $homeKeywords = ['Resort','Villa','Cottage','Hideaway','Homestay','Retreat','Lodge'];
-$hotelKeywords = ['Hotel','Suites','Inn','Hostel','Manor','Seda','Raffles','Shangri','Marco','Crimson'];
 
 $where  = ['h.is_active=1'];
 $params = [];
-if ($locId)  { $where[] = 'h.location_id=?'; $params[] = $locId; }
-if ($stars)  { $where[] = 'h.stars=?';        $params[] = $stars; }
-if ($propName) { $where[] = 'h.name LIKE ?';  $params[] = '%'.$propName.'%'; }
+if ($locId)    { $where[] = 'h.location_id=?'; $params[] = $locId; }
+if ($stars)    { $where[] = 'h.stars=?';        $params[] = $stars; }
+if ($propName) { $where[] = 'h.name LIKE ?';    $params[] = '%'.$propName.'%'; }
 if ($guests > 1) { $where[] = 'EXISTS(SELECT 1 FROM rooms r WHERE r.hotel_id=h.id AND r.max_guests>=? AND r.is_available=1)'; $params[] = $guests; }
 if ($minP > 0)   { $where[] = 'EXISTS(SELECT 1 FROM rooms r WHERE r.hotel_id=h.id AND r.price_per_night>=?)'; $params[] = $minP; }
 if ($maxP > 0)   { $where[] = 'EXISTS(SELECT 1 FROM rooms r WHERE r.hotel_id=h.id AND r.price_per_night<=?)'; $params[] = $maxP; }
+foreach ($amenFilter as $am) {
+    $where[] = 'h.amenities LIKE ?';
+    $params[] = '%' . $am . '%';
+}
 if ($propType === 'homes') {
     $kw = array_map(fn($k) => 'h.name LIKE ?', $homeKeywords);
     $where[] = '(' . implode(' OR ', $kw) . ')';
@@ -44,6 +51,8 @@ $hotels    = $stmt->fetchAll();
 $locations = db()->query('SELECT * FROM locations ORDER BY city')->fetchAll();
 $currentLoc = null;
 foreach ($locations as $l) { if ($l['id']==$locId) { $currentLoc=$l; break; } }
+
+$hasFilters = $locId||$stars||$minP||$maxP||$propName||$propType!=='all'||!empty($amenFilter);
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -85,14 +94,15 @@ include __DIR__ . '/../includes/header.php';
       <input type="hidden" name="max_price" value="<?= $maxP ?>">
       <input type="hidden" name="type"      value="<?= e($propType) ?>">
       <input type="hidden" name="name"      value="<?= e($propName) ?>">
+      <input type="hidden" name="amenities" value="<?= e(implode(',',$amenFilter)) ?>">
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
 
-    <!-- Property type tabs -->
-    <div style="display:flex;gap:6px;padding:8px 0 2px">
+    <!-- Property type tabs — centred -->
+    <div style="display:flex;justify-content:center;gap:6px;padding:10px 0 4px">
       <?php foreach(['all'=>'🏠 All Stays','hotels'=>'🏨 Hotels','homes'=>'🌴 Homes & Resorts'] as $val=>$lbl): ?>
         <a href="?<?= http_build_query(array_merge($_GET,['type'=>$val])) ?>"
-           style="padding:6px 18px;border-radius:20px;font-size:.82rem;font-weight:500;border:1.5px solid;text-decoration:none;
+           style="padding:6px 20px;border-radius:20px;font-size:.82rem;font-weight:500;border:1.5px solid;text-decoration:none;
                   <?= $propType===$val ? 'background:var(--navy);color:#fff;border-color:var(--navy)' : 'background:#fff;color:var(--text2);border-color:var(--border)' ?>">
           <?= $lbl ?>
         </a>
@@ -141,7 +151,22 @@ include __DIR__ . '/../includes/header.php';
           <option value="name"       <?= $sort==='name'      ?'selected':'' ?>>Name A–Z</option>
         </select>
       </div>
-      <?php if ($locId||$stars||$minP||$maxP||$propName||$propType!=='all'): ?>
+      <div class="filter-block">
+        <h4>Amenities</h4>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <?php foreach ($allAmenities as $am):
+            $checked = in_array($am, $amenFilter);
+          ?>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;cursor:pointer;color:var(--text)">
+            <input type="checkbox" class="amen-cb" value="<?= e($am) ?>" <?= $checked?'checked':'' ?>
+                   style="width:15px;height:15px;accent-color:var(--navy);cursor:pointer">
+            <?= e($am) ?>
+          </label>
+          <?php endforeach; ?>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;margin-top:10px" onclick="applyAmen()">Apply</button>
+      </div>
+      <?php if ($hasFilters): ?>
         <a href="search.php" style="font-size:.82rem;color:var(--coral)">✕ Clear all filters</a>
       <?php endif; ?>
     </aside>
@@ -159,7 +184,7 @@ include __DIR__ . '/../includes/header.php';
              style="text-decoration:none" class="fade-up">
             <div class="card" style="display:grid;grid-template-columns:250px 1fr">
               <div style="height:195px;overflow:hidden;border-radius:var(--r) 0 0 var(--r)">
-                <img src="<?= SITE_URL ?>/<?= e($h['thumbnail']??'') ?>" alt="<?= e($h['name']) ?>" style="height:100%;transition:transform .5s"
+                <img src="<?= preg_match('#^https?://#',$h['thumbnail']??'') ? e($h['thumbnail']) : SITE_URL.'/'.e($h['thumbnail']??'') ?>" alt="<?= e($h['name']) ?>" style="height:100%;width:100%;object-fit:cover;transition:transform .5s"
                      onerror="this.src='https://placehold.co/250x195/003580/ffffff?text=<?= urlencode($h['name']) ?>'">
               </div>
               <div style="padding:18px;display:flex;flex-direction:column;justify-content:space-between">
@@ -196,5 +221,11 @@ function applyPrice(){const u=new URL(location.href);const mn=document.getElemen
 function applySort(v){const u=new URL(location.href);u.searchParams.set('sort',v);location.href=u;}
 function applyName(){const u=new URL(location.href);const v=document.getElementById('prop_name').value.trim();v?u.searchParams.set('name',v):u.searchParams.delete('name');location.href=u;}
 document.getElementById('prop_name')?.addEventListener('keydown',e=>{if(e.key==='Enter')applyName();});
+function applyAmen(){
+  const checked=[...document.querySelectorAll('.amen-cb:checked')].map(cb=>cb.value);
+  const u=new URL(location.href);
+  checked.length?u.searchParams.set('amenities',checked.join(',')):u.searchParams.delete('amenities');
+  location.href=u;
+}
 </script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

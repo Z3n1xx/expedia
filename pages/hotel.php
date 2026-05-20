@@ -28,7 +28,7 @@ include __DIR__ . '/../includes/header.php';
   <!-- Gallery -->
   <div class="gallery">
     <div class="gallery-main">
-      <img src="<?= SITE_URL ?>/<?= e($hotel['thumbnail']??'') ?>" alt="<?= e($hotel['name']) ?>"
+      <img src="<?= preg_match('#^https?://#',$hotel['thumbnail']??'') ? e($hotel['thumbnail']) : SITE_URL.'/'.e($hotel['thumbnail']??'') ?>" alt="<?= e($hotel['name']) ?>"
            onerror="this.src='https://placehold.co/800x470/003580/ffffff?text=<?= urlencode($hotel['name']) ?>'">
     </div>
     <div class="gallery-sub">
@@ -75,7 +75,7 @@ include __DIR__ . '/../includes/header.php';
       <div style="border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
         <div style="display:grid;grid-template-columns:130px 1fr">
           <div style="height:110px;overflow:hidden">
-            <img src="<?= SITE_URL ?>/<?= e($rm['thumbnail']??'') ?>" alt="<?= e($rm['room_type']) ?>" style="height:100%;width:100%"
+            <img src="<?= preg_match('#^https?://#',$rm['thumbnail']??'') ? e($rm['thumbnail']) : SITE_URL.'/'.e($rm['thumbnail']??'') ?>" alt="<?= e($rm['room_type']) ?>" style="height:100%;width:100%"
                  onerror="this.src='https://placehold.co/130x110/EBF4FF/003580?text=Room'">
           </div>
           <div style="padding:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">

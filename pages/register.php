@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cf = $_POST['confirm']  ?? '';
     if (!$v['first_name'] || !$v['last_name']) $errors[] = 'First and last name are required.';
     if (strlen($v['first_name']) > 80 || strlen($v['last_name']) > 80) $errors[] = 'Name must not exceed 80 characters.';
-    if (!filter_var($v['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
+    if (preg_match('/[0-9]/', $v['first_name']) || preg_match('/[0-9]/', $v['last_name'])) $errors[] = 'Name must not contain numbers.';
+    if (!validEmail($v['email'])) $errors[] = 'Please enter a valid .com email address (e.g. you@example.com).';
     if ($v['phone'] !== '' && !preg_match('/^0\d{10}$/', $v['phone'])) $errors[] = 'Phone must be 11 digits starting with 0 (e.g. 09XXXXXXXXX).';
     if (strlen($pw) < 8)           $errors[] = 'Password must be at least 8 characters.';
     if (!preg_match('/[A-Z]/', $pw)) $errors[] = 'Password must contain at least one uppercase letter.';
@@ -46,7 +47,11 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="auth-wrap">
   <div class="auth-left">
-    <div style="position:relative;z-index:1">
+    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=900&q=80"
+         alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.5;z-index:1"
+         onerror="this.style.display='none'">
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,32,96,.72),rgba(0,10,40,.82));z-index:2"></div>
+    <div style="position:relative;z-index:3">
       <div style="font-family:var(--font-head);font-size:2rem;font-weight:700;color:#fff;margin-bottom:14px"><em style="color:var(--coral);font-style:italic">E</em>xpedia PH</div>
       <h2 style="font-size:1.4rem;color:#fff;margin-bottom:10px">Join millions of<br>happy travellers</h2>
       <p style="color:rgba(255,255,255,.6);font-size:.9rem;max-width:270px;line-height:1.7">Create your free account and start exploring the best hotels in the Philippines.</p>
@@ -102,6 +107,13 @@ include __DIR__ . '/../includes/header.php';
   </div>
 </div>
 <script>
+// Name fields: block digits on input
+['reg_first','reg_last'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', function() {
+    this.value = this.value.replace(/[0-9]/g, '');
+  });
+});
+
 // Phone: digits only, max 11
 document.getElementById('reg_phone')?.addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, '').substring(0, 11);
@@ -125,8 +137,10 @@ document.querySelector('form')?.addEventListener('submit', function(e) {
   const cf    = document.getElementById('reg_cf').value;
 
   if (!first) { regShowErr('err_reg_first', 'First name is required.'); ok = false; }
+  else if (/[0-9]/.test(first)) { regShowErr('err_reg_first', 'Name must not contain numbers.'); ok = false; }
   if (!last)  { regShowErr('err_reg_last',  'Last name is required.');  ok = false; }
-  if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}$/.test(email)) { regShowErr('err_reg_email', 'Enter a valid email address.'); ok = false; }
+  else if (/[0-9]/.test(last))  { regShowErr('err_reg_last',  'Name must not contain numbers.'); ok = false; }
+  if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.com$/.test(email)) { regShowErr('err_reg_email', 'Only .com email addresses are accepted.'); ok = false; }
   if (phone !== '' && !/^0\d{10}$/.test(phone))   { regShowErr('err_reg_phone', 'Must be 11 digits starting with 0 (e.g. 09XXXXXXXXX).'); ok = false; }
   if (pw.length < 8)            { regShowErr('err_reg_pw', 'At least 8 characters required.'); ok = false; }
   else if (!/[A-Z]/.test(pw))   { regShowErr('err_reg_pw', 'Must contain at least one uppercase letter.'); ok = false; }

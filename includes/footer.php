@@ -14,6 +14,7 @@
     <div class="footer-col">
       <h4>Company</h4>
       <a href="#">About Us</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Blog</a>
+      <a href="<?= SITE_URL ?>/pages/partner-apply.php" style="color:var(--coral);font-weight:500">List your property</a>
     </div>
     <div class="footer-col">
       <h4>Support</h4>

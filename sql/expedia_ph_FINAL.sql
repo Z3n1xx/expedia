@@ -16,7 +16,8 @@ CREATE TABLE `users` (
   `email` varchar(180) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(30) DEFAULT NULL,
-  `role` enum('user','admin') NOT NULL DEFAULT 'user',
+  `role` enum('user','admin','staff') NOT NULL DEFAULT 'user',
+  `hotel_id` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
