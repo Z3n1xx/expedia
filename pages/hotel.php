@@ -58,10 +58,54 @@ include __DIR__ . '/../includes/header.php';
       <h3 style="font-family:var(--font-body);font-weight:600;color:var(--navy);margin-bottom:10px">About this hotel</h3>
       <p class="text-muted" style="line-height:1.8;margin-bottom:26px"><?= nl2br(e($hotel['description'])) ?></p>
 
-      <h3 style="font-family:var(--font-body);font-weight:600;color:var(--navy);margin-bottom:12px">Amenities</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;margin-bottom:32px">
+      <h3 style="font-family:var(--font-body);font-weight:600;color:var(--navy);margin-bottom:14px">Amenities</h3>
+      <?php
+      $amenIcons = [
+        'wifi'       => ['Free WiFi','WiFi'],
+        'pool'       => ['Pool','Infinity Pool','Rooftop Pool','Private Pool','Swim-up Bar'],
+        'spa'        => ['Spa','Cliff Spa','Eco Spa'],
+        'gym'        => ['Gym','Fitness Center'],
+        'restaurant' => ['Restaurant','Fine Dining','All-day Restaurant','Signature Restaurant','3 Restaurants'],
+        'bar'        => ['Bar','Swim-up Bar','Open Bar','All-inclusive'],
+        'parking'    => ['Parking','Valet Parking','Valet'],
+        'beach'      => ['Beach Access','Private Beach','Beach View'],
+        'shuttle'    => ['Airport Shuttle','Airport Transfer'],
+        'pet'        => ['Pet Friendly'],
+        'breakfast'  => ['Breakfast Included','All-inclusive Dining'],
+        'concierge'  => ['Concierge','Butler','Butler Service'],
+        'kids'       => ['Kids Club','Kids Pool'],
+        'business'   => ['Business Center','Meeting Rooms','Event Spaces'],
+        'sports'     => ['Water Sports','Surf Lessons','Kayaking','Snorkeling','Island Hopping'],
+        'yoga'       => ['Yoga'],
+        'fireplace'  => ['Fireplace','Fireplace Rooms'],
+        'golf'       => ['Golf Course','Golf'],
+        'balcony'    => ['Balcony','Private Balcony','Ocean View Terrace','City View Terrace'],
+        'jacuzzi'    => ['Jacuzzi','Bathtub','Outdoor Shower','Rain Shower','Rainfall Shower'],
+        'room'       => ['24hr Room Service','Room Service'],
+        'lounge'     => ['Lounge Access','Executive Lounge'],
+      ];
+      $iconMap = [
+        'wifi'=>'📶','pool'=>'🏊','spa'=>'💆','gym'=>'💪','restaurant'=>'🍽️',
+        'bar'=>'🍹','parking'=>'🅿️','beach'=>'🏖️','shuttle'=>'🚌','pet'=>'🐾',
+        'breakfast'=>'☕','concierge'=>'🛎️','kids'=>'🧒','business'=>'💼',
+        'sports'=>'🏄','yoga'=>'🧘','fireplace'=>'🔥','golf'=>'⛳','balcony'=>'🌅',
+        'jacuzzi'=>'🛁','room'=>'🛎️','lounge'=>'🛋️',
+      ];
+      function getAmenIcon(string $am, array $amenIcons, array $iconMap): string {
+        foreach ($amenIcons as $key => $variants) {
+          foreach ($variants as $v) {
+            if (stripos($am, $v) !== false || stripos($v, $am) !== false) return $iconMap[$key] ?? '✓';
+          }
+        }
+        return '✓';
+      }
+      ?>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:32px">
         <?php foreach ($amenities as $am): ?>
-          <div style="display:flex;align-items:center;gap:7px;font-size:.87rem;color:var(--text2)"><span style="color:var(--coral)">✓</span><?= e($am) ?></div>
+          <div style="display:flex;align-items:center;gap:9px;background:#f8faff;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:.85rem;color:var(--text)">
+            <span style="font-size:1.15rem;flex-shrink:0"><?= getAmenIcon($am, $amenIcons, $iconMap) ?></span>
+            <span><?= e($am) ?></span>
+          </div>
         <?php endforeach; ?>
       </div>
 
@@ -72,29 +116,41 @@ include __DIR__ . '/../includes/header.php';
       <?php else: foreach ($rooms as $rm):
         $rmAms = json_decode($rm['amenities']??'[]',true)?:[];
       ?>
-      <div style="border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
-        <div style="display:grid;grid-template-columns:130px 1fr">
-          <div style="height:110px;overflow:hidden">
-            <img src="<?= preg_match('#^https?://#',$rm['thumbnail']??'') ? e($rm['thumbnail']) : SITE_URL.'/'.e($rm['thumbnail']??'') ?>" alt="<?= e($rm['room_type']) ?>" style="height:100%;width:100%"
-                 onerror="this.src='https://placehold.co/130x110/EBF4FF/003580?text=Room'">
+      <div style="border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+        <!-- Room image full width -->
+        <div style="height:200px;overflow:hidden;position:relative">
+          <img src="<?= preg_match('#^https?://#',$rm['thumbnail']??'') ? e($rm['thumbnail']) : SITE_URL.'/'.e($rm['thumbnail']??'') ?>"
+               alt="<?= e($rm['room_type']) ?>"
+               style="width:100%;height:100%;object-fit:cover;transition:transform .4s"
+               onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"
+               onerror="this.src='https://placehold.co/800x200/EBF4FF/003580?text=<?= urlencode($rm['room_type']) ?>'">
+          <div style="position:absolute;top:10px;left:12px;background:rgba(0,0,0,.55);color:#fff;font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:12px;backdrop-filter:blur(4px)">
+            👤 Max <?= $rm['max_guests'] ?> guest<?= $rm['max_guests']>1?'s':'' ?>
           </div>
-          <div style="padding:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-            <div style="flex:1">
-              <h4 style="font-family:var(--font-head);font-size:.98rem;font-weight:700;color:var(--navy);margin-bottom:4px"><?= e($rm['room_type']) ?></h4>
-              <p class="text-sm text-muted" style="margin-bottom:5px"><?= e($rm['description']) ?></p>
-              <p class="text-sm text-muted" style="margin-bottom:7px">👤 Max <?= $rm['max_guests'] ?> guests</p>
-              <div class="pills"><?php foreach (array_slice($rmAms,0,4) as $a): ?><span class="pill"><?= e($a) ?></span><?php endforeach; ?></div>
+        </div>
+        <!-- Room details -->
+        <div style="padding:16px 18px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start">
+          <div style="flex:1;min-width:200px">
+            <h4 style="font-family:var(--font-head);font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:5px"><?= e($rm['room_type']) ?></h4>
+            <p class="text-sm text-muted" style="margin-bottom:10px;line-height:1.6"><?= e($rm['description']) ?></p>
+            <!-- Room amenity icons -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <?php foreach ($rmAms as $a): ?>
+                <span style="display:inline-flex;align-items:center;gap:5px;background:#f8faff;border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:.78rem;color:var(--text2)">
+                  <span><?= getAmenIcon($a, $amenIcons, $iconMap) ?></span><?= e($a) ?>
+                </span>
+              <?php endforeach; ?>
             </div>
-            <div style="text-align:right;flex-shrink:0">
-              <div style="font-size:1.4rem;font-weight:700;color:var(--navy);font-family:var(--font-head)"><?= money($rm['price_per_night']) ?></div>
-              <div class="text-sm text-muted" style="margin-bottom:10px">per night</div>
-              <?php if (isLoggedIn()): ?>
-                <a href="booking.php?room_id=<?= $rm['id'] ?>&hotel_id=<?= $hotel['id'] ?>&check_in=<?= urlencode($checkIn) ?>&check_out=<?= urlencode($checkOut) ?>&guests=<?= $guests ?>"
-                   class="btn btn-primary btn-sm">Select room</a>
-              <?php else: ?>
-                <a href="login.php?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn btn-navy btn-sm">Sign in to book</a>
-              <?php endif; ?>
-            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;padding-top:2px">
+            <div style="font-size:1.55rem;font-weight:700;color:var(--navy);font-family:var(--font-head);line-height:1"><?= money($rm['price_per_night']) ?></div>
+            <div class="text-sm text-muted" style="margin-bottom:12px">per night</div>
+            <?php if (isLoggedIn()): ?>
+              <a href="booking.php?room_id=<?= $rm['id'] ?>&hotel_id=<?= $hotel['id'] ?>&check_in=<?= urlencode($checkIn) ?>&check_out=<?= urlencode($checkOut) ?>&guests=<?= $guests ?>"
+                 class="btn btn-primary btn-sm">Select room →</a>
+            <?php else: ?>
+              <a href="login.php?next=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn btn-navy btn-sm">Sign in to book</a>
+            <?php endif; ?>
           </div>
         </div>
       </div>
