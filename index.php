@@ -61,10 +61,10 @@ include __DIR__ . '/includes/header.php';
 <?php
 // Curated Unsplash photos per city — beautiful, travel-ready shots
 $destPhotos = [
-  'Boracay'   => ['https://images.unsplash.com/photo-1559628233-100c798642d5?w=800&q=80', '🌊', 'Crystal-white beaches & turquoise water'],
+  'Boracay'   => ['https://images.unsplash.com/photo-1537956965359-7573183d1f57?w=800&q=80', '🌊', 'Crystal-white beaches & turquoise water'],
   'El Nido'   => ['https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&q=80', '🏝️', 'Dramatic limestone cliffs & hidden lagoons'],
   'Siargao'   => ['https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&q=80', '🏄', 'Surf capital of the Philippines'],
-  'Cebu City' => ['https://images.unsplash.com/photo-1597149091879-f7957c354a19?w=800&q=80', '🌺', 'History, beaches & vibrant nightlife'],
+  'Cebu City' => ['https://images.unsplash.com/photo-1518638150340-f706e86654de?w=800&q=80', '🌺', 'History, beaches & vibrant nightlife'],
   'Makati'    => ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80', '🏙️', 'The heart of Philippine business & luxury'],
   'Baguio'    => ['https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&q=80', '🌲', 'Cool mountain air & pine forests'],
   'Davao'     => ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80', '🦅', 'Gateway to Mt. Apo & fresh durian'],
