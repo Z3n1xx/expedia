@@ -25,6 +25,7 @@ global $_CURRENCIES, $_REGIONS;
       <a href="<?= SITE_URL ?>/pages/search.php" class="<?= $page==='search'?'active':'' ?>">Explore Hotels</a>
       <?php if (isLoggedIn()): ?>
         <a href="<?= SITE_URL ?>/pages/my-bookings.php" class="<?= $page==='my-bookings'?'active':'' ?>">My Trips</a>
+        <a href="<?= SITE_URL ?>/pages/support.php" class="<?= $page==='support'?'active':'' ?>">Support</a>
         <?php if (isAdmin()): ?>
           <a href="<?= SITE_URL ?>/admin/dashboard.php" class="<?= $dir==='admin'?'active':'' ?>">Admin</a>
         <?php endif; ?>

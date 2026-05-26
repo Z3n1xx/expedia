@@ -58,22 +58,69 @@ include __DIR__ . '/includes/header.php';
 </section>
 
 <!-- DESTINATIONS -->
+<?php
+// Curated Unsplash photos per city — beautiful, travel-ready shots
+$destPhotos = [
+  'Boracay'   => ['https://images.unsplash.com/photo-1559628233-100c798642d5?w=800&q=80', '🌊', 'Crystal-white beaches & turquoise water'],
+  'El Nido'   => ['https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&q=80', '🏝️', 'Dramatic limestone cliffs & hidden lagoons'],
+  'Siargao'   => ['https://images.unsplash.com/photo-1573790387438-4da905039392?w=800&q=80', '🏄', 'Surf capital of the Philippines'],
+  'Cebu City' => ['https://images.unsplash.com/photo-1597149091879-f7957c354a19?w=800&q=80', '🌺', 'History, beaches & vibrant nightlife'],
+  'Makati'    => ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80', '🏙️', 'The heart of Philippine business & luxury'],
+  'Baguio'    => ['https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&q=80', '🌲', 'Cool mountain air & pine forests'],
+  'Davao'     => ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80', '🦅', 'Gateway to Mt. Apo & fresh durian'],
+  'Batangas'  => ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', '🤿', 'World-class diving & beach escapes'],
+];
+?>
 <section class="section" style="background:var(--off)">
   <div class="container">
-    <div style="margin-bottom:36px">
-      <h2>Popular <em style="color:var(--coral);font-style:italic">destinations</em></h2>
-      <p class="text-muted mt-1">Hand-picked locations our guests love most</p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2>Popular <em style="color:var(--coral);font-style:italic">destinations</em></h2>
+        <p class="text-muted mt-1">Hand-picked locations our guests love most</p>
+      </div>
+      <a href="<?= SITE_URL ?>/pages/search.php" class="btn btn-outline btn-sm">View all →</a>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px">
-      <?php foreach ($dests as $d): ?>
-      <a href="<?= SITE_URL ?>/pages/search.php?location_id=<?= $d['id'] ?>" class="card fade-up" style="text-decoration:none">
-        <div class="card-img" style="height:185px">
-          <img src="<?= SITE_URL ?>/assets/images/dest/dest_<?= $d['id'] ?>.jpg" alt="<?= e($d['city']) ?>"
-               onerror="this.src='https://placehold.co/400x185/003580/ffffff?text=<?= urlencode($d['city']) ?>'">
-          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,32,96,.65),transparent)"></div>
-          <div style="position:absolute;bottom:12px;left:14px;color:#fff">
-            <div style="font-family:var(--font-head);font-size:1.15rem;font-weight:700"><?= e($d['city']) ?></div>
-            <div style="font-size:.78rem;opacity:.8"><?= $d['cnt'] ?> hotel<?= $d['cnt']>1?'s':'' ?></div>
+
+    <!-- Featured big card + smaller grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px">
+      <?php
+      $destList = db()->query('SELECT l.*,COUNT(h.id) cnt,MAX(h.rating) top FROM locations l JOIN hotels h ON h.location_id=l.id WHERE h.is_active=1 GROUP BY l.id ORDER BY top DESC LIMIT 6')->fetchAll();
+      foreach ($destList as $i => $d):
+        [$photo, $icon, $tagline] = $destPhotos[$d['city']] ?? ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80','🌴','Beautiful Philippines'];
+        $isFeatured = ($i === 0);
+      ?>
+      <a href="<?= SITE_URL ?>/pages/search.php?location_id=<?= $d['id'] ?>"
+         class="fade-up dest-card <?= $isFeatured ? 'dest-featured' : '' ?>"
+         style="text-decoration:none;<?= $isFeatured ? 'grid-row:span 2;' : '' ?>">
+        <div style="position:relative;height:<?= $isFeatured ? '100%' : '200px' ?>;min-height:<?= $isFeatured ? '420px' : '200px' ?>;overflow:hidden;border-radius:14px">
+          <img src="<?= $photo ?>" alt="<?= e($d['city']) ?>"
+               style="width:100%;height:100%;object-fit:cover;transition:transform .6s"
+               onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+               onerror="this.style.background='#003580'">
+          <!-- Gradient overlay -->
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,15,50,.85) 0%,rgba(0,15,50,.2) 50%,transparent 100%)"></div>
+          <!-- Top badge -->
+          <div style="position:absolute;top:14px;left:14px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:20px">
+            <?= $icon ?> <?= $d['cnt'] ?> hotel<?= $d['cnt']>1?'s':'' ?>
+          </div>
+          <?php if ($d['top'] >= 4.8): ?>
+          <div style="position:absolute;top:14px;right:14px;background:var(--coral);color:#fff;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px">
+            ★ Top Rated
+          </div>
+          <?php endif; ?>
+          <!-- Bottom content -->
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:<?= $isFeatured ? '28px' : '16px' ?>">
+            <div style="font-family:var(--font-head);font-size:<?= $isFeatured ? '1.9rem' : '1.2rem' ?>;font-weight:700;color:#fff;line-height:1.1;margin-bottom:6px">
+              <?= e($d['city']) ?>
+            </div>
+            <?php if ($isFeatured): ?>
+            <div style="font-size:.88rem;color:rgba(255,255,255,.75);margin-bottom:14px"><?= $tagline ?></div>
+            <span style="display:inline-block;background:var(--coral);color:#fff;font-size:.78rem;font-weight:600;padding:7px 18px;border-radius:20px">
+              Explore hotels →
+            </span>
+            <?php else: ?>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.7)"><?= $tagline ?></div>
+            <?php endif; ?>
           </div>
         </div>
       </a>

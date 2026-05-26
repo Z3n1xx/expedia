@@ -18,7 +18,10 @@
     </div>
     <div class="footer-col">
       <h4>Support</h4>
-      <a href="#">Help Center</a><a href="#">Cancellations</a><a href="#">Safety</a><a href="#">Contact</a>
+      <a href="<?= SITE_URL ?>/pages/support.php">Help Center</a>
+      <a href="<?= SITE_URL ?>/pages/support.php?category=booking">Cancellations</a>
+      <a href="#">Safety</a>
+      <a href="<?= SITE_URL ?>/pages/support.php" style="color:var(--coral);font-weight:500">Contact Support</a>
     </div>
   </div>
   <div class="footer-bottom">

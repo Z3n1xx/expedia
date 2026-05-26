@@ -14,6 +14,13 @@ $stats = [
     'confirmed'  => (int)db()->query("SELECT COUNT(*) FROM bookings WHERE status='confirmed'")->fetchColumn(),
     'avg_booking'=> (float)db()->query("SELECT COALESCE(AVG(total_price),0) FROM bookings WHERE payment_status='paid'")->fetchColumn(),
 ];
+try {
+    $stats['open_tickets']     = (int)db()->query("SELECT COUNT(*) FROM support_tickets WHERE status='open'")->fetchColumn();
+    $stats['unreplied_tickets']= (int)db()->query("SELECT COUNT(*) FROM support_tickets WHERE status='open' AND admin_reply IS NULL")->fetchColumn();
+} catch(Exception $e) {
+    $stats['open_tickets']     = 0;
+    $stats['unreplied_tickets']= 0;
+}
 
 // ── Revenue last 30 days (daily) ────────────────────────────────
 $revTrend = db()->query(
@@ -102,6 +109,7 @@ include __DIR__ . '/../includes/header.php';
       ['💰','Total Revenue',     money($stats['revenue']),                         'Paid bookings'],
       ['📈','Avg Booking Value', money($stats['avg_booking']),                     'Per paid booking'],
       ['🏢','Pending Apps',      number_format($stats['pending_app']),             'Partner applications'],
+      ['💬','Open Tickets',      number_format($stats['open_tickets']),            $stats['unreplied_tickets'].' awaiting reply'],
     ] as [$ic,$ti,$va,$su]): ?>
     <div class="stat-card">
       <div class="stat-icon"><?= $ic ?></div>
