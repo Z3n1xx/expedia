@@ -59,6 +59,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $v['phone'] ?: null, $v['location'], $v['property_type'],
             $v['rooms_count'], $v['website'] ?: null, $v['message'] ?: null,
         ]);
+        $appId = (int)db()->lastInsertId();
+        // ── Sync new application to Firebase Realtime Database ──
+        require_once __DIR__ . '/../includes/firebase.php';
+        Firebase::syncApplication([
+            'id'            => $appId,
+            'business_name' => $v['business_name'],
+            'contact_name'  => $v['contact_name'],
+            'email'         => $v['email'],
+            'phone'         => $v['phone'] ?: null,
+            'location'      => $v['location'],
+            'property_type' => $v['property_type'],
+            'rooms_count'   => $v['rooms_count'],
+            'website'       => $v['website'] ?: null,
+            'message'       => $v['message'] ?: null,
+            'status'        => 'pending',
+            'admin_notes'   => null,
+            'created_at'    => date('Y-m-d H:i:s'),
+        ]);
         $success = true;
         $v = [];
     }

@@ -32,12 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($pw, PASSWORD_BCRYPT, ['cost' => 10]);
             $ins  = db()->prepare('INSERT INTO users (first_name,last_name,email,phone,password,role) VALUES (?,?,?,?,?,\'user\')');
             $ins->execute([$v['first_name'],$v['last_name'],$v['email'],$v['phone'],$hash]);
+            $newUserId = (int)db()->lastInsertId();
             session_regenerate_id(true);
-            $_SESSION['user_id']    = (int)db()->lastInsertId();
+            $_SESSION['user_id']    = $newUserId;
             $_SESSION['email']      = $v['email'];
             $_SESSION['first_name'] = $v['first_name'];
             $_SESSION['last_name']  = $v['last_name'];
             $_SESSION['role']       = 'user';
+            // ── Sync new user to Firebase Realtime Database ──
+            require_once __DIR__ . '/../includes/firebase.php';
+            Firebase::syncUser([
+                'id'         => $newUserId,
+                'first_name' => $v['first_name'],
+                'last_name'  => $v['last_name'],
+                'email'      => $v['email'],
+                'phone'      => $v['phone'],
+                'role'       => 'user',
+                'hotel_id'   => null,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
             flashSet('success', 'Welcome to Expedia PH, '.$v['first_name'].'! 🎉');
             header('Location: '.SITE_URL.'/index.php'); exit;
         }

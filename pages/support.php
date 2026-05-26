@@ -20,8 +20,10 @@ db()->exec("CREATE TABLE IF NOT EXISTS `support_tickets` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-$errors = [];
-$success = false;
+$errors   = [];
+$success  = false;
+$ticketId = 0;
+$email    = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -51,7 +53,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->prepare(
             'INSERT INTO support_tickets (user_id,name,email,subject,category,message,priority) VALUES (?,?,?,?,?,?,?)'
         )->execute([$userId, $name, $email, $subject, $category, $message, $priority]);
-        $ticketId = db()->lastInsertId();
+        $ticketId  = (int)db()->lastInsertId();
+        $createdAt = date('Y-m-d H:i:s');
+        // ── Sync new ticket to Firebase Realtime Database ──
+        require_once __DIR__ . '/../includes/firebase.php';
+        Firebase::syncTicket([
+            'id'          => $ticketId,
+            'user_id'     => $userId,
+            'name'        => $name,
+            'email'       => $email,
+            'subject'     => $subject,
+            'category'    => $category,
+            'message'     => $message,
+            'priority'    => $priority,
+            'status'      => 'open',
+            'admin_reply' => null,
+            'replied_at'  => null,
+            'created_at'  => $createdAt,
+            'updated_at'  => $createdAt,
+        ]);
         $success  = true;
     }
 }

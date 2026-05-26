@@ -88,6 +88,25 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && $step===3) {
             $bkStmt->execute([$_SESSION['user_id'],$hotelId,$roomId,$checkIn,$checkOut,$guests,$nights,$total,$special,$payMethod]);
             $bookingId = (int)db()->lastInsertId();
 
+            // ── Sync new booking to Firebase Realtime Database ──
+            require_once __DIR__ . '/../includes/firebase.php';
+            Firebase::syncBooking([
+                'id'               => $bookingId,
+                'user_id'          => $_SESSION['user_id'],
+                'hotel_id'         => $hotelId,
+                'room_id'          => $roomId,
+                'check_in'         => $checkIn,
+                'check_out'        => $checkOut,
+                'guests'           => $guests,
+                'total_nights'     => $nights,
+                'total_price'      => $total,
+                'special_requests' => $special,
+                'status'           => 'confirmed',
+                'payment_status'   => 'paid',
+                'payment_method'   => $payMethod,
+                'created_at'       => date('Y-m-d H:i:s'),
+            ]);
+
             flashSet('success','Booking #'.$bookingId.' confirmed! Payment of '.money($total).' received.');
             header('Location: '.SITE_URL.'/pages/my-bookings.php');
             exit;
