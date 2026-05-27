@@ -39,7 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['first_name'] = $v['first_name'];
             $_SESSION['last_name']  = $v['last_name'];
             $_SESSION['role']       = 'user';
-            // ── Sync new user to Firebase Realtime Database ──
+            // ── Sync new user to Firebase (DB + Auth) ──
+            // Passing $pw creates a matching Firebase Auth account so
+            // the Android app can sign in with the same email/password.
             require_once __DIR__ . '/../includes/firebase.php';
             Firebase::syncUser([
                 'id'         => $newUserId,
@@ -50,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'role'       => 'user',
                 'hotel_id'   => null,
                 'created_at' => date('Y-m-d H:i:s'),
-            ]);
+            ], $pw);  // $pw = plain password — used once for Firebase Auth, never stored
             flashSet('success', 'Welcome to Expedia PH, '.$v['first_name'].'! 🎉');
             header('Location: '.SITE_URL.'/index.php'); exit;
         }

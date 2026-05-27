@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "hotels": {
+      ".read": true,
+      ".write": false
+    },
+    "locations": {
+      ".read": true,
+      ".write": false
+    },
+    "rooms": {
+      ".read": true,
+      ".write": false
+    },
+    "reviews": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "users": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "bookings": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "support_tickets": {
+      ".read": "auth != null",
+      ".write": true
+    },
+    "hotel_applications": {
+      ".read": "auth != null",
+      ".write": true
+    }
+  }
+}
